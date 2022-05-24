@@ -1,2 +1,2 @@
-# Mars_Bar-EE2_Final_Project-
+# Mars_Bar__EE2_Final_Project__
 EE2_Group8_Summer_Final_Project
