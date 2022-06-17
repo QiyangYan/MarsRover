@@ -187,7 +187,7 @@ int main()
         alt_u16  current_focus = 300;
     	int boundingBoxColour = 0;
     	alt_u32 exposureTime = EXPOSURE_INIT;
-    	alt_u16 gain = GAIN_INIT;
+    	alt_u16 gain = 0x400;
 
         OV8865SetExposure(exposureTime);
         OV8865SetGain(gain);
@@ -259,6 +259,14 @@ int main()
     		   printf("Error writing to UART");
            if (word == EEE_IMGPROC_MSG_START)				//Newline on message identifier
     		   printf("\n");
+           	   printf("\n");
+           if (word >= 'R'<<24 && word <= 'S'<<24){
+        	   printf("RED WIDTH: ");
+           }else if (word >= 'G'<<24 && word <= 'H'<<24){
+        	   printf("GREEN WIDTH: ");
+           }else if (word >= 'B'<<24 && word <= 'C'<<24){
+        	   printf("BLUE WIDTH: ");
+           }
     	   printf("%08x ",word);
        }
 

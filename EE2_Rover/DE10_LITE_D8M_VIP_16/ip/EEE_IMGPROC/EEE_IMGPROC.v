@@ -78,20 +78,43 @@ wire         sop, eop, in_valid, out_ready;
 
 // Detect red areas
 wire red_detect;
-assign red_detect = red[7] & ~green[7] & ~blue[7];
+wire blue_detect;
+wire yellow_dectet;
+wire green_detect;
+wire d_green_detect;
+wire pink_detect;
+assign red_detect = (hsv_h >= 8'd0) && (hsv_h <= 8'd20) && (hsv_s >= 8'd135) && (hsv_s <= 8'd255) && (hsv_v >= 8'd120) && (hsv_v <= 8'd185);
+assign pink_detect =  (hsv_h >= 8'd0) && (hsv_h <= 8'd13) && (hsv_s >= 8'd125) && (hsv_s <= 8'd185) && (hsv_v >= 8'd175) && (hsv_v <= 8'd255);
+assign blue_detect = (hsv_h >= 8'd180) && (hsv_h <= 8'd240) && (hsv_s >= 8'd85) && (hsv_s <= 8'd180) && (hsv_v >= 8'd25) && (hsv_v <= 8'd110);
+assign yellow_dectet =  (hsv_h >= 8'd50) && (hsv_h <= 8'd70) && (hsv_s >= 8'd125) && (hsv_s <= 8'd225) && (hsv_v >= 8'd225) && (hsv_v <= 8'd255);
+assign green_detect =  (hsv_h >= 8'd90) && (hsv_h <= 8'd120) && (hsv_s >= 8'd110) && (hsv_s <= 8'd180) && (hsv_v >= 8'd135) && (hsv_v <= 8'd255);
+assign d_green_detect = (hsv_h >= 8'd100) && (hsv_h <= 8'd170) && (hsv_s >= 8'd80) && (hsv_s <= 8'd130) && (hsv_v >= 8'd40) && (hsv_v <= 8'd120);
 
 // Find boundary of cursor box
 
-// Highlight detected areas
+// Highlight detected areasxxd                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        xxcggg                                                                                                                                                                                                                                                                                                                                                                                                                            b
 wire [23:0] red_high;
 assign grey = green[7:1] + red[7:2] + blue[7:2]; //Grey = green/2 + red/4 + blue/4
-assign red_high  =  red_detect ? {8'hff, 8'h0, 8'h0} : {grey, grey, grey};
+assign red_high  =  red_detect ? {8'hff, 8'h0, 8'h0} :
+					blue_detect ? {8'h0, 8'h0, 8'hff} : 
+					yellow_dectet ? {8'hff, 8'hff, 8'h0} :
+					green_detect ? {8'h0, 8'hff, 8'h0} :
+					d_green_detect ? {8'h0, 8'hff, 8'hff} :
+					pink_detect ? {8'hff, 8'h40, 8'hc0} : 
+					{grey, grey, grey};
 
 // Show bounding box
 wire [23:0] new_image;
-wire bb_active;
-assign bb_active = (x == left) | (x == right) | (y == top) | (y == bottom);
-assign new_image = bb_active ? bb_col : red_high;
+
+wire red_active;
+wire green_active;
+parameter red_col = 24'hff0000;
+parameter green_col = 24'h00ff00;
+assign red_active = (x == red_left) | (x == red_right) | (y == red_top) | (y == red_bottom);
+assign green_active =  (x == green_left) | (x == green_right) | (y == green_top) | (y == green_bottom);
+assign new_image = red_active ? red_col : 
+				   green_active? green_col : 
+				   red_high;
 
 // Switch output pixels depending on mode switch
 // Don't modify the start-of-packet word - it's a packet discriptor
@@ -119,47 +142,135 @@ always@(posedge clk) begin
 end
 
 //Find first and last red pixels
-reg [10:0] x_min, y_min, x_max, y_max;
+reg [10:0] red_x_min, red_y_min, red_x_max, red_y_max;
 always@(posedge clk) begin
 	if (red_detect & in_valid) begin	//Update bounds when the pixel is red
-		if (x < x_min) x_min <= x;
-		if (x > x_max) x_max <= x;
-		if (y < y_min) y_min <= y;
-		y_max <= y;
+		if (x < red_x_min) red_x_min <= x;
+		if (x > red_x_max) red_x_max <= x;
+		if (y < red_y_min) red_y_min <= y;
+		red_y_max <= y;
 	end
 	if (sop & in_valid) begin	//Reset bounds on start of packet
-		x_min <= IMAGE_W-11'h1;
-		x_max <= 0;
-		y_min <= IMAGE_H-11'h1;
-		y_max <= 0;
+		red_x_min <= IMAGE_W-11'h1;
+		red_x_max <= 0;
+		red_y_min <= IMAGE_H-11'h1;
+		red_y_max <= 0;
+	end
+end
+/*
+reg [10:0] pink_x_min, pink_y_min, pink_x_max, pink_y_max;
+always@(posedge clk) begin
+	if (pink_detect & in_valid) begin	//Update bounds when the pixel is pink
+		if (x < pink_x_min) pink_x_min <= x;
+		if (x > pink_x_max) pink_x_max <= x;
+		if (y < pink_y_min) pink_y_min <= y;
+		pink_y_max <= y;
+	end
+	if (sop & in_valid) begin	//Reset bounds on start of packet
+		pink_x_min <= IMAGE_W-11'h1;
+		pink_x_max <= 0;
+		pink_y_min <= IMAGE_H-11'h1;
+		pink_y_max <= 0;
+	end
+end*/
+/*
+reg [10:0] yellow_x_min, yellow_y_min, yellow_x_max, yellow_y_max;
+always@(posedge clk) begin
+	if (pink_detect & in_valid) begin	//Update bounds when the pixel is pink
+		if (x < yellow_x_min) yellow_x_min <= x;
+		if (x > yellow_x_max) yellow_x_max <= x;
+		if (y < yellow_y_min) yellow_y_min <= y;
+		yellow_y_max <= y;
+	end
+	if (sop & in_valid) begin	//Reset bounds on start of packet
+		yellow_x_min <= IMAGE_W-11'h1;
+		yellow_x_max <= 0;
+		yellow_y_min <= IMAGE_H-11'h1;
+		yellow_y_max <= 0;
+	end
+end*/
+
+/*
+reg [10:0] blue_x_min, blue_y_min, blue_x_max, blue_y_max;
+always@(posedge clk) begin
+	if (pink_detect & in_valid) begin	//Update bounds when the pixel is pink
+		if (x < blue_x_min) blue_x_min <= x;
+		if (x > blue_x_max) blue_x_max <= x;
+		if (y < blue_y_min) blue_y_min <= y;
+		blue_y_max <= y;
+	end
+	if (sop & in_valid) begin	//Reset bounds on start of packet
+		blue_x_min <= IMAGE_W-11'h1;
+		blue_x_max <= 0;
+		blue_y_min <= IMAGE_H-11'h1;
+		blue_y_max <= 0;
+	end
+end*/
+
+
+reg [10:0] green_x_min, green_y_min, green_x_max, green_y_max;
+always@(posedge clk) begin
+	if (green_detect & in_valid) begin	//Update bounds when the pixel is pink
+		if (x < green_x_min) green_x_min <= x;
+		if (x > green_x_max) green_x_max <= x;
+		if (y < green_y_min) green_y_min <= y;
+		green_y_max <= y;
+	end
+	if (sop & in_valid) begin	//Reset bounds on start of packet
+		green_x_min <= IMAGE_W-11'h1;
+		green_x_max <= 0;
+		green_y_min <= IMAGE_H-11'h1;
+		green_y_max <= 0;
 	end
 end
 
+/*
+reg [10:0] d_green_x_min, d_green_y_min, d_green_x_max, d_green_y_max;
+always@(posedge clk) begin
+	if (pink_detect & in_valid) begin	//Update bounds when the pixel is pink
+		if (x < d_green_x_min) d_green_x_min <= x;
+		if (x > d_green_x_max) d_green_x_max <= x;
+		if (y < d_green_y_min) d_green_y_min <= y;
+		d_green_y_max <= y;
+	end
+	if (sop & in_valid) begin	//Reset bounds on start of packet
+		d_green_x_min <= IMAGE_W-11'h1;
+		d_green_x_max <= 0;
+		d_green_y_min <= IMAGE_H-11'h1;
+		d_green_y_max <= 0;
+	end
+end*/
+
 //Process bounding box at the end of the frame.
-reg [1:0] msg_state;
-reg [10:0] left, right, top, bottom;
+reg [2:0] msg_state;
+reg [10:0] red_left, red_right, red_top, red_bottom;
+reg [10:0] green_left, green_right, green_top, green_bottom;
 reg [7:0] frame_count;
 always@(posedge clk) begin
 	if (eop & in_valid & packet_video) begin  //Ignore non-video packets
 		
 		//Latch edges for display overlay on next frame
-		left <= x_min;
-		right <= x_max;
-		top <= y_min;
-		bottom <= y_max;
-		
+		red_left <= red_x_min;
+		red_right <= red_x_max;
+		red_top <= red_y_min;
+		red_bottom <= red_y_max;
+
+		green_left <= green_x_min;
+		green_right <= green_x_max;
+		green_top <= green_y_min;
+		green_bottom <= green_y_max;
 		
 		//Start message writer FSM once every MSG_INTERVAL frames, if there is room in the FIFO
 		frame_count <= frame_count - 1;
 		
 		if (frame_count == 0 && msg_buf_size < MESSAGE_BUF_MAX - 3) begin
-			msg_state <= 2'b01;
+			msg_state <= 3'b001;
 			frame_count <= MSG_INTERVAL-1;
 		end
 	end
 	
 	//Cycle through message writer states once started
-	if (msg_state != 2'b00) msg_state <= msg_state + 2'b01;
+	if (msg_state != 3'b000) msg_state <= msg_state + 3'b001;
 
 end
 	
@@ -175,25 +286,54 @@ wire msg_buf_empty;
 
 always@(*) begin	//Write words to FIFO as state machine advances
 	case(msg_state)
-		2'b00: begin
+		3'b000: begin
 			msg_buf_in = 32'b0;
 			msg_buf_wr = 1'b0;
 		end
-		2'b01: begin
+		3'b001: begin
 			msg_buf_in = `RED_BOX_MSG_ID;	//Message ID
 			msg_buf_wr = 1'b1;
 		end
-		2'b10: begin
-			msg_buf_in = {5'b0, x_min, 5'b0, y_min};	//Top left coordinate
+		3'b010: begin
+			msg_buf_in = {5'b0, red_x_min, 5'b0, red_y_min};	//Top left coordinate
 			msg_buf_wr = 1'b1;
 		end
-		2'b11: begin
-			msg_buf_in = {5'b0, x_max, 5'b0, y_max}; //Bottom right coordinate
+		3'b011: begin
+			msg_buf_in = {5'b0, red_x_max, 5'b0, red_y_max}; //Bottom right coordinate
+			msg_buf_wr = 1'b1;
+		end
+		3'b100: begin
+			msg_buf_in = {"R",1'b0,red_x_max,1'b0,red_x_min};	//Top left coordinate
+			msg_buf_wr = 1'b1;
+		end
+		3'b101: begin
+			msg_buf_in = {"G",1'b0,green_x_max,1'b0,green_x_min}; //Bottom right coordinate
+			msg_buf_wr = 1'b1;
+		end
+		3'b110: begin
+			msg_buf_in = {"B",1'b0,red_x_max,1'b0,red_x_min}; //Bottom right coordinate
+			msg_buf_wr = 1'b1;
+		end
+		3'b111: begin
+			msg_buf_in = 8'hdddddddd; //Bottom right coordinate
 			msg_buf_wr = 1'b1;
 		end
 	endcase
 end
 
+wire [7:0]hsv_h;
+wire [7:0]hsv_s;
+wire [7:0]hsv_v;
+
+rgb2hsv rgb2hsv(
+	.clk(clk),
+	.rgb_r(red),
+	.rgb_g(green),
+	.rgb_b(blue),
+	.hsv_h(hsv_h),
+	.hsv_s(hsv_s),
+	.hsv_v(hsv_v)
+);
 
 //Output message FIFO
 MSG_FIFO	MSG_FIFO_inst (
