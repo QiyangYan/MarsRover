@@ -5,6 +5,8 @@
 #include "terasic_includes.h"
 #include "mipi_camera_config.h"
 #include "mipi_bridge_config.h"
+#include "altera_avalon_uart_regs.h"
+#include "altera_avalon_uart.h"
 
 #include "auto_focus.h"
 
@@ -116,7 +118,13 @@ bool MIPI_Init(void){
 	return bSuccess;
 }
 
+int slice_0(int k){
+	return k%4096;
+}
 
+int slice_1(int k){
+	return (k/4096)%4096;
+}
 
 
 int main()
@@ -200,13 +208,15 @@ int main()
         	printf("Failed to open UART\n");
         	while (1);
         }
+  //int delay_count = 0;
 
   while(1){
 
        // touch KEY0 to trigger Auto focus
 	   if((IORD(KEY_BASE,0)&0x03) == 0x02){
-
-    	   current_focus = Focus_Window(320,240);
+    	   //current_focus = Focus_Window(320,240);
+		   gain += GAIN_STEP;
+		   OV8865SetGain(gain);
        }
 	   // touch KEY1 to ZOOM
 	         if((IORD(KEY_BASE,0)&0x03) == 0x01){
@@ -250,26 +260,86 @@ int main()
     	 	usleep(500000);
 
        }
-	#endif
-
+#endif
+//       delay_count += 1;
+//       if(delay_count == 5){
+//    	   delay_count = 0;
+//       }
+//       printf("delay_count: %d \n",delay_count);
        //Read messages from the image processor and print them on the terminal
+       //[7:5] {000,red} {001,blue} {010,yellow} {011,green} {100,d_green} {101,pink}
+       //[4] {0,mid_pt/40} {1,distance/5}
+//       while(1){
+//    	   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,1);
+//    	   printf("%d/n",1);
+//    	   usleep(10000);
+//    	   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,2);
+//    	   printf("%d/n",2);
+//    	   usleep(10000);
+//    	   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,3);
+//    	   printf("%d/n",3);
+//    	   usleep(10000);
+//    	   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,4);
+//    	   printf("%d/n",4);
+//    	   usleep(10000);
+//    	   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,5);
+//    	   printf("%d/n",5);
+//    	   usleep(1500000);
+//       }
        while ((IORD(0x42000,EEE_IMGPROC_STATUS)>>8) & 0xff) { 	//Find out if there are words to read
            int word = IORD(0x42000,EEE_IMGPROC_MSG); 			//Get next word from message buffer
-    	   if (fwrite(&word, 4, 1, ser) != 1)
-    		   printf("Error writing to UART");
-           if (word == EEE_IMGPROC_MSG_START)				//Newline on message identifier
-    		   printf("\n");
-           	   printf("\n");
-           if (word >= 'R'<<24 && word <= 'S'<<24){
-        	   printf("RED WIDTH: ");
-           }else if (word >= 'G'<<24 && word <= 'H'<<24){
-        	   printf("GREEN WIDTH: ");
-           }else if (word >= 'B'<<24 && word <= 'C'<<24){
-        	   printf("BLUE WIDTH: ");
+           int mid_pt = slice_0(word)/40;
+           int dist = 500/slice_1(word);
+           alt_8 tmp = 0;
+           if (dist >= 16){
+        	   dist = 0;
            }
-    	   printf("%08x ",word);
+//           if (delay_count == 0){
+//			   if (fwrite(&word, 4, 1, ser) != 1)
+//				   printf("Error writing to UART");
+			   if (word == EEE_IMGPROC_MSG_START)				//Newline on message identifier
+				   printf("\n");
+			   	   //printf("\n");
+			   if (word >= 'R'<<24 && word <= 'S'<<24){
+				   //IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,1);
+				   usleep(10000);
+////				   printf("RED MID_PT: %d \t ",slice_0(word));
+////				   printf("RED DISTANCE: %d",2500/slice_1(word));
+				   //IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,1);
+				   tmp = 0b00000000 + mid_pt;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   printf("%d\n",0b00000000 + mid_pt);
+				   usleep(10000);
+				   tmp = 0b00010000 + dist;
+				   //IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,2);
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   printf("%d\n",0b00010000 + dist);
+				   usleep(10000);
+			   }
+//			   else if (word >= 'B'<<24 && word <= 'C'<<24){
+//				   printf("BLUE MID_PT: %d \t\t ",slice_0(word));
+//				   printf("BLUE DISTANCE: %d",2500/slice_1(word));
+//			   }
+//			   else if (word >= 'Y'<<24 && word <= 'Z'<<24){
+//				   printf("YELLOW MID_PT: %d \t ",slice_0(word));
+//				   printf("YELLOW DISTANCE: %d",2500/slice_1(word));
+//			   }
+//			   else if (word >= 'G'<<24 && word <= 'H'<<24){
+//				   printf("GREEN MID_PT: %d \t ",slice_0(word));
+//				   printf("GREEN DISTANCE: %d",2500/slice_1(word));
+//			   }
+//			   else if (word >= 'D'<<24 && word <= 'E'<<24){
+//				   printf("D_GREEN MID_PT: %d \t ",slice_0(word));
+//				   printf("D_GREEN DISTANCE: %d",2500/slice_1(word));
+//			   }
+//			   else if (word >= 'P'<<24 && word <= 'Q'<<24){
+//				   printf("PINK MID_PT: %d \t\t ",slice_0(word));
+//				   printf("PINK DISTANCE: %d",2500/slice_1(word));
+//			   }
+//		   }
+			   //IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,word);
        }
-
+//#endif
        //Update the bounding box colour
        boundingBoxColour = ((boundingBoxColour + 1) & 0xff);
        IOWR(0x42000, EEE_IMGPROC_BBCOL, (boundingBoxColour << 8) | (0xff - boundingBoxColour));
@@ -312,8 +382,7 @@ int main()
 
 
 	   //Main loop delay
-	   usleep(10000);
-
-   };
+	   usleep(150000);
+   }
   return 0;
 }
