@@ -14,3 +14,18 @@ always@(posedge clk) begin
 		pink_y_max <= 0;
 	end
 end*/
+
+/*
+000 | 0 | 0000 		→ 	colour | angle/distance | data
+colour:			//		angle		0		//		angle		mid-point pixel
+red		000		//		distance	1		//		distance	in cm
+blue	001		//
+yellow	010		//
+green	011		//
+d_green	100		//
+pink	101		//
+
+if(data == 0) not detected;
+if(distance) distance = data[3:0]*5 (1 = 5cm; 2 = 10cm);
+if(angle) angle = pending calculation
+/*

@@ -126,6 +126,35 @@ int slice_1(int k){
 	return (k/4096)%4096;
 }
 
+void print_tmp(int tmp){
+	if(tmp/16==0){
+		printf("red mid: %d\n",tmp%16);
+	}else if(tmp/16==1){
+		printf("red dist: %d\n",tmp%16);
+	}else if(tmp/16==2){
+		printf("blue mid: %d\n",tmp%16);
+	}else if(tmp/16==3){
+		printf("blue dist: %d\n",tmp%16);
+	}else if(tmp/16==4){
+		printf("yellow mid: %d\n",tmp%16);
+	}else if(tmp/16==5){
+		printf("yellow dist: %d\n",tmp%16);
+	}else if(tmp/16==6){
+		printf("green mid: %d\n",tmp%16);
+	}else if(tmp/16==7){
+		printf("green dist: %d\n",tmp%16);
+	}else if(tmp/16==8){
+		printf("d_green mid: %d\n",tmp%16);
+	}else if(tmp/16==9){
+		printf("d_green dist: %d\n",tmp%16);
+	}else if(tmp/16==10){
+		printf("pink mid: %d\n",tmp%16);
+	}else if(tmp/16==11){
+		printf("pink dist: %d\n",tmp%16);
+	}else{
+		printf("tmp/16: %d",tmp/16);
+	}
+}
 
 int main()
 {
@@ -290,9 +319,13 @@ int main()
            int word = IORD(0x42000,EEE_IMGPROC_MSG); 			//Get next word from message buffer
            int mid_pt = slice_0(word)/40;
            int dist = 500/slice_1(word);
-           alt_8 tmp = 0;
-           if (dist >= 16){
+           alt_u8 tmp = 0;
+           printf("dist: %D\n",dist);
+           if (dist >= 16 || dist <= 5){
         	   dist = 0;
+           }
+           if (dist == 0){
+        	   mid_pt = 0;
            }
 //           if (delay_count == 0){
 //			   if (fwrite(&word, 4, 1, ser) != 1)
@@ -301,42 +334,81 @@ int main()
 				   printf("\n");
 			   	   //printf("\n");
 			   if (word >= 'R'<<24 && word <= 'S'<<24){
-				   //IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,1);
-				   usleep(10000);
 ////				   printf("RED MID_PT: %d \t ",slice_0(word));
 ////				   printf("RED DISTANCE: %d",2500/slice_1(word));
-				   //IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,1);
 				   tmp = 0b00000000 + mid_pt;
 				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
-				   printf("%d\n",0b00000000 + mid_pt);
-				   usleep(10000);
+				   print_tmp(tmp);
+				   //printf("%d\n",0b00000000 + mid_pt);
+				   usleep(1000);
 				   tmp = 0b00010000 + dist;
 				   //IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,2);
 				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
-				   printf("%d\n",0b00010000 + dist);
-				   usleep(10000);
+				   print_tmp(tmp);
+				   //printf("%d\n",0b00010000 + dist);
+				   usleep(1000);
 			   }
-//			   else if (word >= 'B'<<24 && word <= 'C'<<24){
-//				   printf("BLUE MID_PT: %d \t\t ",slice_0(word));
-//				   printf("BLUE DISTANCE: %d",2500/slice_1(word));
-//			   }
-//			   else if (word >= 'Y'<<24 && word <= 'Z'<<24){
-//				   printf("YELLOW MID_PT: %d \t ",slice_0(word));
-//				   printf("YELLOW DISTANCE: %d",2500/slice_1(word));
-//			   }
-//			   else if (word >= 'G'<<24 && word <= 'H'<<24){
-//				   printf("GREEN MID_PT: %d \t ",slice_0(word));
-//				   printf("GREEN DISTANCE: %d",2500/slice_1(word));
-//			   }
-//			   else if (word >= 'D'<<24 && word <= 'E'<<24){
-//				   printf("D_GREEN MID_PT: %d \t ",slice_0(word));
-//				   printf("D_GREEN DISTANCE: %d",2500/slice_1(word));
-//			   }
-//			   else if (word >= 'P'<<24 && word <= 'Q'<<24){
-//				   printf("PINK MID_PT: %d \t\t ",slice_0(word));
-//				   printf("PINK DISTANCE: %d",2500/slice_1(word));
-//			   }
-//		   }
+			   else if (word >= 'B'<<24 && word <= 'C'<<24){
+				//    printf("BLUE MID_PT: %d \t\t ",slice_0(word));
+				//    printf("BLUE DISTANCE: %d",2500/slice_1(word));
+				   tmp = 0b00100000 + mid_pt;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+				   tmp = 0b00110000 + dist;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+			   }
+			   else if (word >= 'Y'<<24 && word <= 'Z'<<24){
+				//    printf("YELLOW MID_PT: %d \t ",slice_0(word));
+				//    printf("YELLOW DISTANCE: %d",2500/slice_1(word));
+				   tmp = 0b01000000 + mid_pt;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+				   tmp = 0b01010000 + dist;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+			   }
+			   else if (word >= 'G'<<24 && word <= 'H'<<24){
+				//    printf("GREEN MID_PT: %d \t ",slice_0(word));
+				//    printf("GREEN DISTANCE: %d",2500/slice_1(word));
+				   tmp = 0b01100000 + mid_pt;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+				   tmp = 0b01110000 + dist;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+			   }
+			   else if (word >= 'D'<<24 && word <= 'E'<<24){
+				//    printf("D_GREEN MID_PT: %d \t ",slice_0(word));
+				//    printf("D_GREEN DISTANCE: %d",2500/slice_1(word));
+				   tmp = 0b10000000 + mid_pt;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+				   tmp = 0b10010000 + dist;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+			   }
+			   else if (word >= 'P'<<24 && word <= 'Q'<<24){
+				//    printf("PINK MID_PT: %d \t\t ",slice_0(word));
+				//    printf("PINK DISTANCE: %d",2500/slice_1(word));
+				   tmp = 0b10100000 + mid_pt;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+				   tmp = 0b10110000 + dist;
+				   IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,tmp);
+				   print_tmp(tmp);
+				   usleep(1000);
+			   }
+
 			   //IOWR_ALTERA_AVALON_UART_TXDATA(UART_0_BASE,word);
        }
 //#endif
@@ -382,7 +454,7 @@ int main()
 
 
 	   //Main loop delay
-	   usleep(150000);
+	   usleep(10000);
    }
   return 0;
 }

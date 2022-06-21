@@ -83,6 +83,8 @@ wire yellow_detect;
 wire green_detect;
 wire d_green_detect;
 wire pink_detect;
+wire any_detect;
+assign any_detect = red_detect | blue_detect | yellow_detect | green_detect | d_green_detect | pink_detect;
 assign red_detect = (hsv_h >= 8'd0) && (hsv_h <= 8'd20) && (hsv_s >= 8'd135) && (hsv_s <= 8'd255) && (hsv_v >= 8'd120) && (hsv_v <= 8'd185);
 assign pink_detect =  (hsv_h >= 8'd0) && (hsv_h <= 8'd13) && (hsv_s >= 8'd125) && (hsv_s <= 8'd185) && (hsv_v >= 8'd175) && (hsv_v <= 8'd255);
 assign blue_detect = (hsv_h >= 8'd180) && (hsv_h <= 8'd240) && (hsv_s >= 8'd85) && (hsv_s <= 8'd180) && (hsv_v >= 8'd25) && (hsv_v <= 8'd110);
@@ -103,15 +105,49 @@ assign red_high  =  red_detect ? {8'hff, 8'h0, 8'h0} :
 					pink_detect ? {8'hff, 8'h40, 8'hc0} : 
 					{grey, grey, grey};
 
+reg [639:0]line_1_out,line_2_out;
+reg [2:0]line_3_out;
+initial begin
+	line_1_out=640'h0;
+	line_2_out=640'h0;
+	line_3_out=3'b0;
+end
+shift_reg_640 line_1(
+	.d(line_2_out[639]),
+	.clk(clk),
+	.en(in_valid),
+	.rst(!sop),
+	.out(line_1_out)
+);
+shift_reg_640 line_2(
+	.d(line_3_out[2]),
+	.clk(clk),
+	.en(in_valid),
+	.rst(!sop),
+	.out(line_2_out)
+);
+shift_reg_3 line_3(
+	.d(any_detect),
+	.clk(clk),
+	.en(in_valid),
+	.rst(!sop),
+	.out(line_3_out)
+);
+
+wire filter_detect;
+assign filter_detect = (line_1_out[639] + line_1_out[638] + line_1_out[637] + line_2_out[639] + line_2_out[638] + line_2_out[637] + line_3_out[2] + line_3_out[1] + line_3_out[0] > 6);
+//assign filter_detect = line_1_out[638];
+
 // Show bounding box
 wire [23:0] new_image;
-
+wire [23:0] filter_image;
 wire red_active;
 wire green_active;
 wire blue_active;
 wire yellow_active;
 wire d_green_active;
 wire pink_active;
+
 parameter red_col = 24'hff0000;
 parameter blue_col = 24'h0000ff;
 parameter yellow_col = 24'hffff00;
@@ -137,11 +173,11 @@ assign new_image = force_w_line ? 24'hffffff :
 				   d_green_active ? d_green_col:
 				   pink_active ? pink_col:
 				   red_high;
-
+assign filter_image = filter_detect ? new_image : {grey,grey,grey};
 // Switch output pixels depending on mode switch
 // Don't modify the start-of-packet word - it's a packet discriptor
 // Don't modify data in non-video packets
-assign {red_out, green_out, blue_out} = (mode & ~sop & packet_video) ? new_image : {red,green,blue};
+assign {red_out, green_out, blue_out} = (mode & ~sop & packet_video) ? new_image : filter_image;
 
 //Count valid pixels to tget the image coordinates. Reset and detect packet type on Start of Packet.
 reg [10:0] x, y;
@@ -165,131 +201,131 @@ end
 
 //Find first and last red pixels
 reg [10:0] red_x_min, red_y_min, red_x_max, red_y_max;
-reg red_detect_1, red_detect_2,red_detect_3, red_detect_4;
+//reg red_detect_1, red_detect_2,red_detect_3, red_detect_4;
 always@(posedge clk) begin
-	red_detect_1 <= red_detect;
-	red_detect_2 <= red_detect_1;
-	red_detect_3 <= red_detect_2;
-	red_detect_4 <= red_detect_3;
-	if (((red_detect && red_detect_1 && red_detect_2 && red_detect_3 && red_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is red
+	// red_detect_1 <= red_detect;
+	// red_detect_2 <= red_detect_1;
+	// red_detect_3 <= red_detect_2;
+	// red_detect_4 <= red_detect_3;
+	if (((red_detect & filter_detect) & in_valid) && y > 11'd70) begin// && red_detect_1 && red_detect_2 && red_detect_3 && red_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is red
 		if (x < red_x_min) red_x_min <= x;
 		if (x > red_x_max) red_x_max <= x;
-		if (y < red_y_min) red_y_min <= y;
-		red_y_max <= y;
+		// if (y < red_y_min) red_y_min <= y;
+		// red_y_max <= y;
 	end
 	if (sop & in_valid) begin	//Reset bounds on start of packet
 		red_x_min <= IMAGE_W-11'h1;
 		red_x_max <= 0;
-		red_y_min <= IMAGE_H-11'h1;
-		red_y_max <= 0;
+		// red_y_min <= IMAGE_H-11'h1;
+		// red_y_max <= 0;
 	end
 end
 
 reg [10:0] pink_x_min, pink_y_min, pink_x_max, pink_y_max;
-reg pink_detect_1, pink_detect_2, pink_detect_3, pink_detect_4;
+//reg pink_detect_1, pink_detect_2, pink_detect_3, pink_detect_4;
 always@(posedge clk) begin
-	pink_detect_1 <= pink_detect;
-	pink_detect_2 <= pink_detect_1;
-	pink_detect_3 <= pink_detect_2;
-	pink_detect_4 <= pink_detect_3;
-	if (((pink_detect && pink_detect_1 && pink_detect_2 && pink_detect_3 && pink_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
+	// pink_detect_1 <= pink_detect;
+	// pink_detect_2 <= pink_detect_1;
+	// pink_detect_3 <= pink_detect_2;
+	// pink_detect_4 <= pink_detect_3;
+	if (((pink_detect & filter_detect ) & in_valid) && y > 11'd70) begin//&& pink_detect_1 && pink_detect_2 && pink_detect_3 && pink_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
 		if (x < pink_x_min) pink_x_min <= x;
 		if (x > pink_x_max) pink_x_max <= x;
-		if (y < pink_y_min) pink_y_min <= y;
-		pink_y_max <= y;
+		// if (y < pink_y_min) pink_y_min <= y;
+		// pink_y_max <= y;
 	end
 	if (sop & in_valid) begin	//Reset bounds on start of packet
 		pink_x_min <= IMAGE_W-11'h1;
 		pink_x_max <= 0;
-		pink_y_min <= 0;
-		pink_y_max <= 0;
+		// pink_y_min <= 0;
+		// pink_y_max <= 0;
 	end
 end
 
 reg [10:0] yellow_x_min, yellow_y_min, yellow_x_max, yellow_y_max;
-reg yellow_detect_1, yellow_detect_2, yellow_detect_3, yellow_detect_4;
+//reg yellow_detect_1, yellow_detect_2, yellow_detect_3, yellow_detect_4;
 always@(posedge clk) begin
-	yellow_detect_1 <= yellow_detect;
-	yellow_detect_2 <= yellow_detect_1;
-	yellow_detect_3 <= yellow_detect_2;
-	yellow_detect_4 <= yellow_detect_3;
-	if (((yellow_detect && yellow_detect_1 && yellow_detect_2 &&  yellow_detect_3 && yellow_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
+	// yellow_detect_1 <= yellow_detect;
+	// yellow_detect_2 <= yellow_detect_1;
+	// yellow_detect_3 <= yellow_detect_2;
+	// yellow_detect_4 <= yellow_detect_3;
+	if (((yellow_detect & filter_detect ) & in_valid) && y > 11'd70) begin//&& yellow_detect_1 && yellow_detect_2 &&  yellow_detect_3 && yellow_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
 		if (x < yellow_x_min) yellow_x_min <= x;
 		if (x > yellow_x_max) yellow_x_max <= x;
-		if (y < yellow_y_min) yellow_y_min <= y;
-		yellow_y_max <= y;
+		// if (y < yellow_y_min) yellow_y_min <= y;
+		// yellow_y_max <= y;
 	end
 	if (sop & in_valid) begin	//Reset bounds on start of packet
 		yellow_x_min <= IMAGE_W-11'h1;
 		yellow_x_max <= 0;
-		yellow_y_min <= 0;
-		yellow_y_max <= 0;
+		// yellow_y_min <= 0;
+		// yellow_y_max <= 0;
 	end
 end
 
 
 reg [10:0] blue_x_min, blue_y_min, blue_x_max, blue_y_max;
-reg blue_detect_1, blue_detect_2, blue_detect_3, blue_detect_4;
+//reg blue_detect_1, blue_detect_2, blue_detect_3, blue_detect_4;
 always@(posedge clk) begin
-	blue_detect_1 <= blue_detect;
-	blue_detect_2 <= blue_detect_1;
-	blue_detect_3 <= blue_detect_2;
-	blue_detect_4 <= blue_detect_3;
-	if (((blue_detect && blue_detect_1 && blue_detect_2 && blue_detect_3 && blue_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
+	// blue_detect_1 <= blue_detect;
+	// blue_detect_2 <= blue_detect_1;
+	// blue_detect_3 <= blue_detect_2;
+	// blue_detect_4 <= blue_detect_3;
+	if (((blue_detect & filter_detect ) & in_valid) && y > 11'd70) begin//&& blue_detect_1 && blue_detect_2 && blue_detect_3 && blue_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
 		if (x < blue_x_min) blue_x_min <= x;
 		if (x > blue_x_max) blue_x_max <= x;
-		if (y < blue_y_min) blue_y_min <= y;
-		blue_y_max <= y;
+		// if (y < blue_y_min) blue_y_min <= y;
+		// blue_y_max <= y;
 	end
 	if (sop & in_valid) begin	//Reset bounds on start of packet
 		blue_x_min <= IMAGE_W-11'h1;
 		blue_x_max <= 0;
-		blue_y_min <= 0;
-		blue_y_max <= 0;
+		// blue_y_min <= 0;
+		// blue_y_max <= 0;
 	end
 end
 
 
 reg [10:0] green_x_min, green_y_min, green_x_max, green_y_max;
-reg green_detect_1, green_detect_2, green_detect_3, green_detect_4;
+//reg green_detect_1, green_detect_2, green_detect_3, green_detect_4;
 always@(posedge clk) begin
-	green_detect_1 <= green_detect;
-	green_detect_2 <= green_detect_1;
-	green_detect_3 <= green_detect_2;
-	green_detect_4 <= green_detect_3;
-	if (((green_detect && green_detect_1 && green_detect_2 && green_detect_3 && green_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
+	// green_detect_1 <= green_detect;
+	// green_detect_2 <= green_detect_1;
+	// green_detect_3 <= green_detect_2;
+	// green_detect_4 <= green_detect_3;
+	if (((green_detect & filter_detect) & in_valid) && y > 11'd70) begin// && green_detect_1 && green_detect_2 && green_detect_3 && green_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
 		if (x < green_x_min) green_x_min <= x;
 		if (x > green_x_max) green_x_max <= x;
-		if (y < green_y_min) green_y_min <= y;
-		green_y_max <= y;
+		// if (y < green_y_min) green_y_min <= y;
+		// green_y_max <= y;
 	end
 	if (sop & in_valid) begin	//Reset bounds on start of packet
 		green_x_min <= IMAGE_W-11'h1;
 		green_x_max <= 0;
-		green_y_min <= 0;
-		green_y_max <= 0;
+		// green_y_min <= 0;
+		// green_y_max <= 0;
 	end
 end
 
 
 reg [10:0] d_green_x_min, d_green_y_min, d_green_x_max, d_green_y_max;
-reg d_green_detect_1, d_green_detect_2, d_green_detect_3, d_green_detect_4;
+//reg d_green_detect_1, d_green_detect_2, d_green_detect_3, d_green_detect_4;
 always@(posedge clk) begin
-	d_green_detect_1 <= d_green_detect;
-	d_green_detect_2 <= d_green_detect_1;
-	d_green_detect_3 <= d_green_detect_2;
-	d_green_detect_4 <= d_green_detect_3;
-	if (((d_green_detect && d_green_detect_1 && d_green_detect_2 && d_green_detect_3 && d_green_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
+	// d_green_detect_1 <= d_green_detect;
+	// d_green_detect_2 <= d_green_detect_1;
+	// d_green_detect_3 <= d_green_detect_2;
+	// d_green_detect_4 <= d_green_detect_3;
+	if (((d_green_detect & filter_detect) & in_valid) && y > 11'd70) begin// && d_green_detect_1 && d_green_detect_2 && d_green_detect_3 && d_green_detect_4) & in_valid) && y > 11'd70) begin	//Update bounds when the pixel is pink
 		if (x < d_green_x_min) d_green_x_min <= x;
 		if (x > d_green_x_max) d_green_x_max <= x;
-		if (y < d_green_y_min) d_green_y_min <= y;
-		d_green_y_max <= y;
+		// if (y < d_green_y_min) d_green_y_min <= y;
+		// d_green_y_max <= y;
 	end
 	if (sop & in_valid) begin	//Reset bounds on start of packet
 		d_green_x_min <= IMAGE_W-11'h1;
 		d_green_x_max <= 0;
-		d_green_y_min <= 0;
-		d_green_y_max <= 0;
+		// d_green_y_min <= 0;
+		// d_green_y_max <= 0;
 	end
 end
 
@@ -305,36 +341,67 @@ reg [7:0] frame_count;
 always@(posedge clk) begin
 	if (eop & in_valid & packet_video) begin  //Ignore non-video packets
 		
-		//Latch edges for display overlay on next frame
-		red_left <= red_x_min;
-		red_right <= red_x_max;
-		red_top <= red_y_min;
-		red_bottom <= red_y_max;
-
-		// blue_left <= blue_x_min;
-		// blue_right <= blue_x_max;
-		// blue_top <= blue_y_min;
-		// blue_bottom <= blue_y_max;
-
-		// yellow_left <= yellow_x_min;
-		// yellow_right <= yellow_x_max;
-		// yellow_top <= yellow_y_min;
-		// yellow_bottom <= yellow_y_max;
-
-		// green_left <= green_x_min;
-		// green_right <= green_x_max;
-		// green_top <= green_y_min;
-		// green_bottom <= green_y_max;
-		
-		// d_green_left <= d_green_x_min;
-		// d_green_right <= d_green_x_max;
-		// d_green_top <= d_green_y_min;
-		// d_green_bottom <= d_green_y_max;
-
-		// pink_left <= pink_x_min;
-		// pink_right <= pink_x_max;
-		// pink_top <= pink_y_min;
-		// pink_bottom <= pink_y_max;
+			//Latch edges for display overlay on next frame
+		if( red_x_max != IMAGE_W-11'h1 && red_x_min != 0) begin
+			red_left <= red_x_min;
+			red_right <= red_x_max;
+			//red_top <= red_y_min;
+			//red_bottom <= red_y_max;
+		end
+		else begin
+			red_left <= 0;
+			red_right <= 0;
+		end
+		if( blue_x_max != IMAGE_W-11'h1 && blue_x_min != 0) begin
+			blue_left <= blue_x_min;
+			blue_right <= blue_x_max;
+			// blue_top <= blue_y_min;
+			// blue_bottom <= blue_y_max;
+		end
+		else begin
+			blue_left <= 0;
+			blue_right <= 0;
+		end
+		if( yellow_x_max != IMAGE_W-11'h1 && yellow_x_min != 0) begin
+			yellow_left <= yellow_x_min;
+			yellow_right <= yellow_x_max;
+			// yellow_top <= yellow_y_min;
+			// yellow_bottom <= yellow_y_max;
+		end
+		else begin
+			yellow_left <= 0;
+			yellow_right <= 0;
+		end
+		if( green_x_max != IMAGE_W-11'h1 && green_x_min != 0) begin
+			green_left <= green_x_min;
+			green_right <= green_x_max;
+			// green_top <= green_y_min;
+			// green_bottom <= green_y_max;
+		end
+		else begin
+			green_left <= 0;
+			green_right <= 0;
+		end
+		if( d_green_x_max != IMAGE_W-11'h1 && d_green_x_min != 0) begin
+			d_green_left <= d_green_x_min;
+			d_green_right <= d_green_x_max;
+			// d_green_top <= d_green_y_min;
+			// d_green_bottom <= d_green_y_max;
+		end
+		else begin
+			d_green_left <= 0;
+			d_green_right <= 0;
+		end
+		if( pink_x_max != IMAGE_W-11'h1 && pink_x_min != 0) begin
+			pink_left <= pink_x_min;
+			pink_right <= pink_x_max;
+			// pink_top <= pink_y_min;
+			// pink_bottom <= pink_y_max;
+		end
+		else begin
+			pink_left <= 0;
+			pink_right <= 0;
+		end
 		//Start message writer FSM once every MSG_INTERVAL frames, if there is room in the FIFO
 		frame_count <= frame_count - 1;
 		
