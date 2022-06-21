@@ -1,0 +1,23 @@
+JSON format:
+- updates every 0.1s
+- speed and distance all in real distance in cm, cm/s
+- keep going forward or backward until stop is pressed
+- everytime left/right is sent, the rover turns 90 degrees
+
+from esp to webserver:
+{
+    speed: 2, //float
+    distanceExplored: 3, //float
+    displacementFromBase: 3, //float
+    roverCoordinate: [0,3], //coordinate in a list of 2 floats
+    alienCoordinate: [[2,5], [1,3]], // list of coordinates
+    infraCoordinate: [[2,5], [1,3]], // list of coordinates
+    batteryLevel: 1, //int from 0-3, needs experiments on relationship between battery and distance
+    return: false //boolean, depends on displacement and battery level
+}
+
+from webserver to esp:
+{   
+    mode: 'auto', //'auto' or 'manual'
+    command: 'forward', //'returnToBase', 'forward', 'backward', 'left', 'right', 'stop' (?speed control)
+}
