@@ -9,6 +9,7 @@ function Map(){
 
   const aliens = data.alienCoordinate;
   const infras = data.infraCoordinate;
+  const towers = data.tower;
   const rover = data.roverCoordinate;
 
   const callAPI = () =>{
@@ -28,6 +29,7 @@ function Map(){
     console.log(aliens);
     console.log(infras);
     console.log(rover);
+    console.log(tower);
   },[])
 
   return ( 

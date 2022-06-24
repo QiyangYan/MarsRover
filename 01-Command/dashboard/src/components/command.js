@@ -30,8 +30,9 @@ function Command(){
         setCommand('stop');
     }
 
+
     const sendData = () =>{
-        fetch("http://localhost:9000/frontend/post",{
+        fetch("http://18.212.255.51:9000/frontend/post",{
             method: 'POST',
             body: JSON.stringify({mode: mode, command: command}),
             headers: {'Content-Type': 'application/json;charset=utf-8'},

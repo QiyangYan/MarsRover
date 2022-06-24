@@ -2,9 +2,37 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const sqlite3 = require('sqlite3').verbose();
 var cors = require('cors');
 var app = express();
 var port = 9000;
+//initiate database
+const db = new sqlite3.Database('./mock.sqlite', sqlite3.OPEN_READWRITE,(err)=>{
+    if (err) return console.log(err.message);
+    console.log('database connection successful')
+})
+//create table
+//db.run(`CREATE TABLE alien(alien_x, alien_y, alien_color)`);
+//db.run(`CREATE TABLE path(rover_x, rover_y)`);
+// //insert row
+// const sql= `INSERT INTO alien(alien_x, alien_y, alien_color) VALUES(?,?,?)`;
+
+// db.run(sql,['1', 'G', '{x: 1, y:1}'], (err)=>{
+//     if (err) return console.log(err.message);
+//     console.log('a new row has been created')});
+
+// const sql = `SELECT * from alien`;
+
+// db.all(sql, [], (err, rows) => {
+//     if (err) return console.log(err.message);
+//     rows.forEach((row)=>{
+//         console.log(row);
+//     })
+// })
+//close database
+// db.close((err)=>{
+//     if (err) return console.log(err.message);
+// })
 
 var corsOptions = {
     origin:['http://localhost:3000', 'http://localhost:9000'],
@@ -33,7 +61,7 @@ var batteryCharging = false;
 var goBack = false;
 
 var Command = {mode:'', command:''};
-var alienInfo = [{distance: 1, angle: 0, color:''},{distance: 1, angle: 0, color:'G'},{distance: 1, angle: 0, color:''}];
+var espInfo = [{x_axis: 1, y_axis: 0, color:'', ball_x: '', ball_y: ''}];
 
 app.get('/frontend/data/map', function(req, res) {
     res.set('Content-Type','application/json');
@@ -71,67 +99,23 @@ app.post('/esp/commands/post', function(req,res) {
     console.log(req.body.distance);
     console.log(req.body.angle);
     console.log(req.body.color);
-    alienInfo.push(req.body);
+    espInfo.push(req.body);
     //removes duplicates
-    var info = alienInfo.filter((item, index, self) => 
+    var info = espInfo.filter((item, index, self) => 
     index === self. findIndex((t) => (
-        t.distance === item.distance && t.angle === item.angle && t.color ===item.color
+        t.ball_x === item.ball_x && t.ball_y === item.ball_y && t.color ===item.color
     )))
-    alienInfo = info;
-    console.log(alienInfo);
+    espInfo = info;
+    console.log(espInfo);
+
+    //if(req.body.color !== ''){
+    // const sql= `INSERT INTO alien(alien_x, alien_y, alien_color) VALUES(?,?,?)`,
+    //[req.body.ball_x, req.body.ball_y,req.body.color],(err)=>{
+    //     if (err) return console.log(err.message);
+    //     console.log('a new row has been created')};
+    //}
+    
 });
 
 app.listen(port,(err)=>err?console.log(err):console.log(`Server Running on port ${port}`)) 
 
-
-/*
-//import Node Package Management package
-const express = require('express');
-//const mysql = require('mysql');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-
-var app = express();
-var port = 3100;
-var corsOptions = {
-    origin:['http://localhost:3100', 'http://localhost:3000'],
-    optionsSuccessStatus: 200
-}
-
-app.use(cors(corsOptions));
-
-//app.use(bodyParser.json());
-
-//config conncection to database
-// const connection = mysql.createConnection({ host:"localhost",
-// database:"cps_ecc_22",
-// user:"root",
-// password:"" })
-
-
-
-
-// Connecting to databese
-// connection.connect(err=>{err?console.log(err):console.log("Connection to database OK")})
-
-// Once connected to database, we create a ROUTE that specifies the REQUEST type or method
-// app.get('/data',(req,res)=>{
-//     connection.query('SELECT * FROM iot',(err,rows)=>{
-//         err?res.send(err):res.send(rows) 
-//     })
-// })
-
-app.get('/', function(req, res) {
-    res.writeHead(200, {'Content-Type':'text/html'});
-    res.end('Hello, Server!');
-});
-
-app.post('/post', (req, res) => {
-    //res.send("POST Request Called")
-    console.log('post request received');
-    console.log(req.body.str1);
-  })
-
-app.listen(port,(err)=>err?console.log(err):console.log(`Server Running on port ${port}`)) 
-
-*/
