@@ -1,4 +1,5 @@
 //draws the map, still going
+//ask for possible colors from vision
 import React, {useState, useEffect} from 'react';
 import {Stage, Layer, Circle, Rect, Line, Image} from 'react-konva';
 
@@ -14,28 +15,35 @@ var poles = [{x:200, y:10}, {x:40, y:60}]
 var positions = [{x:0,y:0},{x:5,y:0},{x:20,y:0},{x:30,y:0},{x:30,y:15}]
 //var espInfo = [{x_axis: 1, y_axis: 0, color:'', ball_x: '', ball_y: ''}];
 
-// const [data, setData] = useState({});
-// //const alienImage =  useImage('https://www.indiewire.com/wp-content/uploads/2021/06/Yoda.png');
-// var aliens = data.aliens;
-// var infras = data.infras;
-// var towers = data.towers;
-// var positions = data.path;
+const [data, setData] = useState({});
+const [alien, setAlien] = useState([]);
+const [path, setPath] = useState([]);
+//const alienImage =  useImage('https://www.indiewire.com/wp-content/uploads/2021/06/Yoda.png');
 
-// const callAPI = () =>{
-//   fetch("http://localhost:9000/frontend/data/map")
-//       .then(res => {
-//         const item = res.json()
-//         console.log(item)
-//         return item})
-//       .then(item => {
-//         setData(item)})
-//       .catch(error => {console.log(error)})
-// }
+const callAPI = () =>{
+  fetch("http://localhost:9000/frontend/data/alien")
+      .then(res => {
+        const item = res.json()
+        console.log(item)
+        return item})
+      .then(item => {
+        setAlien(item)})
+      .catch(error => {console.log(error)})
 
-// useEffect(()=>{
-//   callAPI();
-//   console.log('get request sent');
-// },[])
+  fetch("http://localhost:9000/frontend/data/path")
+  .then(res => {
+    const item = res.json()
+    console.log(item)
+    return item})
+  .then(item => {
+    setPath(item)})
+  .catch(error => {console.log(error)})
+}
+
+useEffect(()=>{
+  callAPI();
+  console.log('get request sent');
+},[])
 
 function xScale(x){
   var len = left+(window.innerWidth/2-left)*(x/360)
