@@ -1,49 +1,41 @@
-//draws the map, still going
-//ask for possible colors from vision
+//working map without database
 import React, {useState, useEffect} from 'react';
-import {Stage, Layer, Circle, Rect, Line, Image} from 'react-konva';
+import {Stage, Layer, Circle, Rect, Line} from 'react-konva';
 
-// roverCoordinate : {x:0, y:3},
-// alienCoordinate : [{x:5, y:2, color:''}, {x:7, y:4, color: ''}],
-// infraCoordinate : [{x:1, y:3}, {x:2, y:5}]
 
 const left = 50;
 const top = 100;
-var aliens = [{x:50, y:20, color:'red'}, {x:70, y:40, color: 'blue'}]
-var infras = [{x:100, y:30}, {x:20, y:50}]
-var poles = [{x:200, y:10}, {x:40, y:60}]
-var positions = [{x:0,y:0},{x:5,y:0},{x:20,y:0},{x:30,y:0},{x:30,y:15}]
 //var espInfo = [{x_axis: 1, y_axis: 0, color:'', ball_x: '', ball_y: ''}];
 
-const [data, setData] = useState({});
-const [alien, setAlien] = useState([]);
-const [path, setPath] = useState([]);
+
 //const alienImage =  useImage('https://www.indiewire.com/wp-content/uploads/2021/06/Yoda.png');
 
-const callAPI = () =>{
-  fetch("http://localhost:9000/frontend/data/alien")
-      .then(res => {
-        const item = res.json()
-        console.log(item)
-        return item})
-      .then(item => {
-        setAlien(item)})
-      .catch(error => {console.log(error)})
+// const callAPI = () =>{
+//   fetch("http://localhost:9000/frontend/data/alien")
+//       .then(res => {
+//         const item = res.json()
+//         console.log('alieninfo: '+item)
+//         return item})
+//       .then(item => {if(alien[-1]!==item){
+//         setAlien((prev)=>[...prev,item])}}
+//         )
+//       .then(console.log(alien.alien_x+alien.alien_y+alien.alien_color))
+//       .catch(error => {console.log('alienerror: '+error)})
 
-  fetch("http://localhost:9000/frontend/data/path")
-  .then(res => {
-    const item = res.json()
-    console.log(item)
-    return item})
-  .then(item => {
-    setPath(item)})
-  .catch(error => {console.log(error)})
-}
+//   fetch("http://localhost:9000/frontend/data/path")
+//   .then(res => {
+//     const item = res.json()
+//     console.log('pathinfo: '+ item)
+//     return item})
+//   .then(item => {if(path[-1]!==item){
+//       setPath((prev)=>[...prev,item])}}
+//       )
+//   .then(console.log(path.x_axis+path.y_axis))
+//   .catch(error => {console.log('patherror: '+error)})
+// }
 
-useEffect(()=>{
-  callAPI();
-  console.log('get request sent');
-},[])
+
+
 
 function xScale(x){
   var len = left+(window.innerWidth/2-left)*(x/360)
@@ -53,14 +45,60 @@ function yScale(y){
   var len = top+(window.innerHeight*3/4-top)*(y/240)
   return len;
 };
+function color_decode(color){
+  if (color === 'R'){
+    return 'red';
+  }
+  else if(color === 'Y'){
+    return 'yellow';
+  }
+  else if(color === 'B'){
+    return 'blue';
+  }
+  else if(color === 'G'){
+    return 'green';
+  }
+  else if(color === 'D'){
+    return 'darkgreen';
+  }
+  else if(color === 'P'){
+    return 'magenta';
+  }
+  else if(color === 'W'){
+    return 'white';
+  }
+  else{return 'black';}
+}
 
 var pts = []
-positions.map((position)=>(
-  pts.push(xScale(position.x), yScale(position.y))
-))
-console.log(pts);
 
 export default function Map() {
+  const [data, setData] = useState([{x_axis: 0, y_axis: 0, color:'', ball_x: '', ball_y: ''}]);
+  
+  const callAPI = () =>{
+    fetch("http://18.212.255.51:9000/frontend/data")
+      .then(res => {
+        const item = res.json();
+        console.log('callAPI: '+ item);
+        return item;})
+      .then((item)=>{setData(item)})
+      .catch(error => {console.log(error)})
+  }
+
+  useEffect(()=>{
+    const interval = setInterval(() => {
+      callAPI();
+      console.log('get request sent');
+    }, 500);
+    return () => clearInterval(interval);
+  },[])
+  console.log('aftereffectdata: '+data[0].x_axis);
+  data.map((line)=>(
+    pts.push(xScale(line.x_axis), yScale(line.y_axis))
+  ))
+  console.log('path: '+ pts);
+
+
 
     return (
       <Stage width={window.innerWidth/2} height={window.innerHeight*3/4}>
@@ -70,42 +108,19 @@ export default function Map() {
               y = {top}
               width={window.innerWidth/2-left}
               height={window.innerHeight*3/4-top}
-              fill = 'grey'
-              opacity = {0.3}
+              fill = 'white'
+              opacity = {0.5}
             />
-            {aliens.map((alien)=> (
+            {data.map((line)=> (
                 <Circle
-                x={xScale(alien.x)}
-                y={yScale(alien.y)}
-                radius={15}
-                fill={alien.color}
+                x={xScale(line.ball_x)}
+                y={yScale(line.ball_x)}
+                radius={10}
+                fill={color_decode(line.color)}
                 shadowBlur={5}
               />
                
             ))}
-        
-            {infras.map((infra)=> (
-                    <Rect
-                    x={xScale(infra.x)+left}
-                    y={yScale(infra.y)+top}
-                    width={15}
-                    height={15}
-                    fill= 'purple'
-                    shadowBlur={5}
-                />
-                ))
-                }
-            {poles.map((pole)=> (
-                    <Circle
-                    x={xScale(pole.x)+left}
-                    y={yScale(pole.y)+top}
-                    radius={15}
-                    fill= 'white'
-                    stroke = 'black'
-                    shadowBlur={5}
-                />
-                ))
-                }
             
             <Line
             points = {pts}
@@ -114,7 +129,7 @@ export default function Map() {
             <Circle
             x = {pts[pts.length -2]}
             y = {pts[pts.length -1]}
-            radius = '3'
+            radius = {3}
             fill = 'white'
             stroke = 'yellow'
             />
@@ -123,3 +138,4 @@ export default function Map() {
       </Stage>
     );
   }
+  

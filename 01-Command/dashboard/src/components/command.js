@@ -4,14 +4,20 @@ import React, {useState, useEffect} from 'react';
 
 function Command(){
     const [mode, setMode] = useState('');
-    const toggleMode = () =>{
-        if(mode === 'auto'){
-            setMode('manual');
-        }
-        else{
-            setMode('auto');
-        }
-    };
+    // const toggleMode = () =>{
+    //     if(mode === 'auto'){
+    //         setMode('manual');
+    //     }
+    //     else{
+    //         setMode('auto');
+    //     }
+    // };
+    const setManual = () =>{
+        setMode('manual');
+    }
+    const setAuto = () =>{
+        setMode('auto');
+    }
 
     const [command, setCommand] = useState('');
     const forward = () => {
@@ -47,7 +53,8 @@ function Command(){
 
     return(
         <div>
-            <button onClick={toggleMode}>AUTO/MANUAL</button> <br></br>
+            <button onClick={setAuto}>AUTO</button> <br></br>
+            <button onClick={setManual}>MANUAL</button> <br></br>
             <button onClick={forward}>FORWARD</button> <br></br>
             <button onClick={left}>LEFT</button>
             <button onClick={right}>RIGHT</button> <br></br>

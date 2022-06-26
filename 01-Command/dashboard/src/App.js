@@ -11,9 +11,8 @@ import Map from './components/map';
 
 function App() {
   return(
-    <div>
+    <div className="App">
       <header className="App-header"> 
-        <br></br>
         Mars Rover
       </header>
       <Map/ >
