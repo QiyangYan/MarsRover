@@ -28,8 +28,11 @@ function Status(){
 
   return ( 
       <div>
-        <h1 className="App-text1 status"> 
-          Rover Direction: {direction} <br></br>
+        <h1 className="App-text status"> 
+          Rover Direction: {direction} 
+        </h1>
+        <h1 className="App-text status">
+          <br></br>
           Distance Travelled: {distance} cm
         </h1>
           

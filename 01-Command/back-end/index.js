@@ -83,16 +83,6 @@ const readPath = `SELECT *
 //     })
 // })
 
-/*{
-    speed: 2, //float
-    distanceExplored: 3, //float
-    displacementFromBase: 3, //float
-    roverCoordinate : {x:0, y:3},
-    alienCoordinate : [{x:5, y:2, color:''}, {x:7, y:4, color: ''}],
-    infraCoordinate : [{x:1, y:3}, {x:2, y:5}]
-    goBack: false //boolean, depends on displacement and battery level
-}*/
-
 var distanceExplored = 3;
 var displacementFromBase = 3;
 var goBack = false;

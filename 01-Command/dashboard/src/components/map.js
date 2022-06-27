@@ -129,14 +129,28 @@ export default function Map() {
             {data.map((line)=> (
                 <Circle
                 x={xScale(line.ball_x)}
-                y={yScale(line.ball_x)}
+                y={yScale(line.ball_y)}
                 radius={10}
                 fill={color_decode(line.color)}
                 shadowBlur={5}
               />
-               
             ))}
-            {drawLine}
+            {data.map((line)=> (
+                <Text
+                x={xScale(line.ball_x)}
+                y={yScale(line.ball_y)+10}
+                text = {'('+line.ball_x+', '+line.ball_y+')'}
+                fontFamily = 'Courier New'
+                fill = 'black'
+                fontSize= {15}
+                />
+            ))}
+
+            <Line
+            points = {pts}
+            stroke = 'red'
+            closed = {false}
+            />
 
             <Circle
             x = {pts[pts.length -2]}
