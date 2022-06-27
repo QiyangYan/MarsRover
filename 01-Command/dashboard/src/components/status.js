@@ -1,6 +1,5 @@
 import '../App.css';
 import React, {useState, useEffect} from 'react';
-import {Stage, Layer, Rect, Text} from 'react-konva';
 
 function Status(){
 
@@ -29,9 +28,9 @@ function Status(){
 
   return ( 
       <div>
-        <h1 className="App-text"> 
-          rover direction: {direction} <br></br>
-          distance travelled: {distance}
+        <h1 className="App-text1 status"> 
+          Rover Direction: {direction} <br></br>
+          Distance Travelled: {distance} cm
         </h1>
           
       </div>

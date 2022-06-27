@@ -26,11 +26,11 @@ function App() {
         </Grid>
         <Grid item xs={4} spacing = {0} container direction='column'>
           <Grid item xs={1}/ >
-          <Paper>
+          <Paper sx={{backgroundColor: 'white' , opacity: 0.7}}>
             <Status/ >
           </Paper>
           <Grid item xs={1}/ >
-          <Paper className='Paper-box'>
+          <Paper sx={{backgroundColor: 'white' , opacity: 0.7}}>
             <Command/ >
           </Paper>
         </Grid>
@@ -56,7 +56,7 @@ export default App;
         
       </Grid>
     </Grid> */}
-    
+
   // const [data, setData] = useState({apiResponse: ''});
 
   // const callAPI = () =>{

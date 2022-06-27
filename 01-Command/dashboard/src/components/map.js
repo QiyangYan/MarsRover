@@ -88,6 +88,12 @@ export default function Map() {
   useEffect(()=>{
     const interval = setInterval(() => {
       callAPI();
+      var info = data.filter((item, index, self) => 
+      index === self. findIndex((t) => (
+          t.x_axis === item.x_axis && t.y_axis === item.y_axis 
+          && t.ball_x === item.ball_x && t.ball_y === item.ball_y && t.color ===item.color
+      )))
+    setData(info);
       console.log('get request sent');
     }, 1000);
     return () => clearInterval(interval);
@@ -98,15 +104,16 @@ export default function Map() {
   ))
   console.log('path: '+ pts);
 
-  // const drawLine = (pts) =>{
-  //   for(let i=0; i<pts.length-4;i = i+2){
-  //     console.log(pts.slice(i, i+4));
-  //     <Line
-  //           points = {pts.slice(i, i+4)}
-  //           stroke = 'red'
-  //           />
-  //   }
-  // }
+  const drawLine = (pts) =>{
+    for(let i=0; i<pts.length-4;i = i+2){
+      console.log(pts.slice(i, i+4));
+      <Line
+            points = {pts.slice(i, i+4)}
+            stroke = 'red'
+            closed = {false}
+            />
+    }
+  }
 
     return (
       <Stage width={window.innerWidth/2} height={window.innerHeight-top}>
@@ -117,7 +124,7 @@ export default function Map() {
               width={window.innerWidth/2-left}
               height={window.innerHeight*3/4-top-50}
               fill = 'white'
-              opacity = {0.5}
+              opacity = {0.6}
             />
             {data.map((line)=> (
                 <Circle
@@ -129,11 +136,7 @@ export default function Map() {
               />
                
             ))}
-            <Line
-            points = {pts}
-            stroke = 'red'
-            closed = {false}
-            />
+            {drawLine}
 
             <Circle
             x = {pts[pts.length -2]}
