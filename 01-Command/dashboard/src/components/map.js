@@ -1,10 +1,10 @@
 //working map without database
 import React, {useState, useEffect} from 'react';
-import {Stage, Layer, Circle, Rect, Line} from 'react-konva';
+import {Stage, Layer, Circle, Rect, Line, Text} from 'react-konva';
 
 
 const left = 50;
-const top = 100;
+const top = 50;
 //var espInfo = [{x_axis: 1, y_axis: 0, color:'', ball_x: '', ball_y: ''}];
 
 
@@ -42,7 +42,7 @@ function xScale(x){
   return len;
 };
 function yScale(y){
-  var len = top+(window.innerHeight*3/4-top)*(y/240)
+  var len = window.innerHeight*3/4-50-(window.innerHeight*3/4-50-top)*(y/240)
   return len;
 };
 function color_decode(color){
@@ -67,7 +67,7 @@ function color_decode(color){
   else if(color === 'W'){
     return 'white';
   }
-  else{return 'black';}
+  else{return '';}
 }
 
 var pts = []
@@ -89,25 +89,33 @@ export default function Map() {
     const interval = setInterval(() => {
       callAPI();
       console.log('get request sent');
-    }, 500);
+    }, 1000);
     return () => clearInterval(interval);
   },[])
-  console.log('aftereffectdata: '+data[0].x_axis);
+
   data.map((line)=>(
     pts.push(xScale(line.x_axis), yScale(line.y_axis))
   ))
   console.log('path: '+ pts);
 
-
+  // const drawLine = (pts) =>{
+  //   for(let i=0; i<pts.length-4;i = i+2){
+  //     console.log(pts.slice(i, i+4));
+  //     <Line
+  //           points = {pts.slice(i, i+4)}
+  //           stroke = 'red'
+  //           />
+  //   }
+  // }
 
     return (
-      <Stage width={window.innerWidth/2} height={window.innerHeight*3/4}>
+      <Stage width={window.innerWidth/2} height={window.innerHeight-top}>
         <Layer>
             <Rect
               x = {left}
               y = {top}
               width={window.innerWidth/2-left}
-              height={window.innerHeight*3/4-top}
+              height={window.innerHeight*3/4-top-50}
               fill = 'white'
               opacity = {0.5}
             />
@@ -121,11 +129,12 @@ export default function Map() {
               />
                
             ))}
-            
             <Line
             points = {pts}
             stroke = 'red'
+            closed = {false}
             />
+
             <Circle
             x = {pts[pts.length -2]}
             y = {pts[pts.length -1]}
@@ -135,7 +144,93 @@ export default function Map() {
             />
             
         </Layer>
+        <Layer>
+          <Text
+            text = 'alien' 
+            x = {left}
+            y = {window.innerHeight*3/4}
+            fontFamily = 'Courier New'
+            fill = 'white'
+            fontSize= {24}
+          />
+          <Circle
+                x={left + 100}
+                y={window.innerHeight*3/4 +10}
+                radius={10}
+                fill='red'
+                shadowBlur={5}
+          />
+          <Circle
+                x={left + 140}
+                y={window.innerHeight*3/4+10}
+                radius={10}
+                fill="yellow"
+                shadowBlur={5}
+          />
+          <Circle
+                x={left + 180}
+                y={window.innerHeight*3/4+10}
+                radius={10}
+                fill='blue'
+                shadowBlur={5}
+          />
+          <Circle
+                x={left + 220}
+                y={window.innerHeight*3/4+10}
+                radius={10}
+                fill='green'
+                shadowBlur={5}
+          />
+          <Circle
+                x={left + 260}
+                y={window.innerHeight*3/4+10}
+                radius={10}
+                fill='darkgreen'
+                shadowBlur={5}
+          />
+          <Circle
+                x={left + 300}
+                y={window.innerHeight*3/4+10}
+                radius={10}
+                fill='magenta'
+                shadowBlur={5}
+          />
+          <Text
+            text = 'tower' 
+            x = {left}
+            y = {window.innerHeight*3/4+30}
+            fontFamily = 'Courier New'
+            fill = 'white'
+            fontSize= {24}
+          />
+          <Circle
+                x={left + 100}
+                y={window.innerHeight*3/4 +40}
+                radius={10}
+                fill='white'
+                shadowBlur={5}
+          />
+          <Text
+            text = 'infrastructure' 
+            x = {left}
+            y = {window.innerHeight*3/4+60}
+            fontFamily = 'Courier New'
+            fill = 'white'
+            fontSize= {24}
+          />
+          <Rect
+            x={left + 220}
+            y={window.innerHeight*3/4 +62}
+            width={20}
+            height={20}
+            fill='purple'
+            shadowBlur={5}
+          />
+          
+        </Layer>
       </Stage>
+      
+      
     );
   }
   

@@ -4,7 +4,18 @@
   background-size: cover;
   height: 100%;
   margin: 0;
-  
+}
+
+.App-text {
+  text-align: left;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 4;
+  fill:#282c34;
+
+}
+
+.Paper-box{
+  background-color: black;
 }
 
 .App-logo {
@@ -34,6 +45,8 @@
 .App-link {
   color: #61dafb;
 }
+
+
 
 @keyframes App-logo-spin {
   from {

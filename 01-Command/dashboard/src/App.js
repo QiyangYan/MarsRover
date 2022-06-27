@@ -1,29 +1,62 @@
 //the frontend toplevel file
 
 import './App.css';
-//import axios from 'axios';
-// import Status from './components/status';
-//import Battery from './components/battery';
 import React from 'react'
 import Command from './components/command';
 import Map from './components/map';
+import Status from './components/status';
+import {Grid, Paper} from "@mui/material";
 
 
 function App() {
   return(
     <div className="App">
-      <header className="App-header"> 
-        Mars Rover
-      </header>
-      <Map/ >
-      <Command/ >
-      
+      <Grid container spacing={0} columns={12}>
+
+        <Grid item xs={12}>
+          <div>
+            <header className="App-header"> 
+              Mars Rover
+            </header>
+          </div>
+        </Grid>
+        
+        <Grid item xs={7}>
+          <Map/ >
+        </Grid>
+        <Grid item xs={4} spacing = {0} container direction='column'>
+          <Grid item xs={1}/ >
+          <Paper>
+            <Status/ >
+          </Paper>
+          <Grid item xs={1}/ >
+          <Paper className='Paper-box'>
+            <Command/ >
+          </Paper>
+        </Grid>
+        
+        
+
+      </Grid>
     </div>
+    
+    
+    
   )
 }
 
 export default App;
-
+{/* <Grid container spacing={2} columns={16}>
+      <Grid item xs={8}>
+        
+          
+        
+      </Grid>
+      <Grid item xs={8}>
+        
+      </Grid>
+    </Grid> */}
+    
   // const [data, setData] = useState({apiResponse: ''});
 
   // const callAPI = () =>{
