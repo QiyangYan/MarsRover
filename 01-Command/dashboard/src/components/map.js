@@ -1,40 +1,12 @@
 //working map without database
 import React, {useState, useEffect} from 'react';
 import {Stage, Layer, Circle, Rect, Line, Text} from 'react-konva';
+//import {PathLine} from 'react-svg-pathline'
 
 
 const left = 50;
 const top = 50;
 //var espInfo = [{x_axis: 1, y_axis: 0, color:'', ball_x: '', ball_y: ''}];
-
-
-//const alienImage =  useImage('https://www.indiewire.com/wp-content/uploads/2021/06/Yoda.png');
-
-// const callAPI = () =>{
-//   fetch("http://localhost:9000/frontend/data/alien")
-//       .then(res => {
-//         const item = res.json()
-//         console.log('alieninfo: '+item)
-//         return item})
-//       .then(item => {if(alien[-1]!==item){
-//         setAlien((prev)=>[...prev,item])}}
-//         )
-//       .then(console.log(alien.alien_x+alien.alien_y+alien.alien_color))
-//       .catch(error => {console.log('alienerror: '+error)})
-
-//   fetch("http://localhost:9000/frontend/data/path")
-//   .then(res => {
-//     const item = res.json()
-//     console.log('pathinfo: '+ item)
-//     return item})
-//   .then(item => {if(path[-1]!==item){
-//       setPath((prev)=>[...prev,item])}}
-//       )
-//   .then(console.log(path.x_axis+path.y_axis))
-//   .catch(error => {console.log('patherror: '+error)})
-// }
-
-
 
 
 function xScale(x){
@@ -88,32 +60,35 @@ export default function Map() {
   useEffect(()=>{
     const interval = setInterval(() => {
       callAPI();
-      var info = data.filter((item, index, self) => 
-      index === self. findIndex((t) => (
-          t.x_axis === item.x_axis && t.y_axis === item.y_axis 
-          && t.ball_x === item.ball_x && t.ball_y === item.ball_y && t.color ===item.color
-      )))
-    setData(info);
       console.log('get request sent');
     }, 1000);
     return () => clearInterval(interval);
   },[])
-
+  pts = [];
   data.map((line)=>(
     pts.push(xScale(line.x_axis), yScale(line.y_axis))
   ))
   console.log('path: '+ pts);
 
-  const drawLine = (pts) =>{
-    for(let i=0; i<pts.length-4;i = i+2){
-      console.log(pts.slice(i, i+4));
-      <Line
-            points = {pts.slice(i, i+4)}
-            stroke = 'red'
-            closed = {false}
-            />
-    }
-  }
+  // const drawLine = (arr) =>{
+  //   <Line
+  //     points = {arr}
+  //     stroke = 'red'
+  //     closed = {false}
+  //   />
+  // }
+
+  // const drawPath = () =>{
+  //   testdata.map((line)=> {
+  //     console.log('line: '+line)
+  //     tmp = [line.x_axis,line.y_axis];
+  //     tmp.push(positionBuffer)
+  //     console.log('tmp: '+tmp)
+  //       drawLine(tmp);
+  //       positionBuffer=line;
+  //   }  
+  //   )
+  // }
 
     return (
       <Stage width={window.innerWidth/2} height={window.innerHeight-top}>
@@ -147,11 +122,11 @@ export default function Map() {
             ))}
 
             <Line
-            points = {pts}
-            stroke = 'red'
-            closed = {false}
+              points = {pts}
+              stroke = 'red'
+              closed = {false}
             />
-
+  
             <Circle
             x = {pts[pts.length -2]}
             y = {pts[pts.length -1]}
