@@ -1,0 +1,82 @@
+.App {
+  text-align: center;
+  background-image: url('https://mars.nasa.gov/system/news_items/main_images/8944_1-PIA24546-1280.jpg');
+  background-size: cover;
+  height: 100%;
+  margin: 0;
+}
+
+.App-text {
+  font-family: 'Courier New', Courier, monospace;
+  fill:black;
+}
+
+.status {
+  text-align: left;
+  font-size: 20px;
+  font-weight: 500;
+}
+.mode {
+  text-align: center;
+  font-size: 16px;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 300;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: papyrus, Fantasy;
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+}
+
+.button {
+  background-color: tan;
+  color: #282c34;
+  font-size: 16px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  padding: 16px 30px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.button:hover {
+  background-color: sienna;
+  color: #f1f1f1;
+}
+
+.button-arrow {
+  background-color: white;
+  box-sizing: border-box;
+  height: 3vw;
+  width: 3vw;
+  border-style: solid;
+  border-color: #282c34;
+  border-width: 0px 2px 2px 0px;
+  transform: rotate(45deg);
+  transition: border-width 150ms ease-in-out;
+  
+}
+.back {
+  transform: rotate(45deg);
+}
+.forward {
+  transform: rotate(225deg);
+}
+.left {
+  transform: rotate(135deg);
+}
+.right {
+  transform: rotate(315deg);
+}
+.button-arrow:hover {
+  border-bottom-width: 5px;
+  border-right-width: 5px;
+}
